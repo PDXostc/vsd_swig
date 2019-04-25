@@ -148,4 +148,5 @@ def set_callback(ctx, cb):
 def process_events(timeout_msec):
     return vsd_swig.dstc_process_events(timeout_msec);
 
-dstc.activate()
+def activate():
+    dstc.activate()
