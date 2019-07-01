@@ -29,59 +29,55 @@ class data_type_e:
     vsd_stream = 10
     vsd_na = 11
 
-def create_context():
-    return vsd_swig.swig_vsd_create_context()
-
 def publish(sig):
+    vsd_swig.log_debug("VSD Publish")
     return vsd_swig.vsd_publish(sig)
 
-def subscribe(ctx, sig):
-    return vsd_swig.swig_vsd_subscribe(ctx, sig)
+def subscribe(sig):
+    vsd_swig.log_debug("VSD Subscribe")
+    return vsd_swig.swig_vsd_subscribe(sig)
 
-def load_from_file(ctx, fname):
-    return vsd_swig.vsd_load_from_file(ctx, fname)
+def signal_by_id(sig_id):
+    return vsd_swig.swig_vss_get_signal_by_index(sig_id)
 
-def signal_by_id(ctx, sig_id):
-    return vsd_swig.swig_vsd_find_signal_by_path(ctx, sig_id)
-
-def signal(ctx, path):
-    return vsd_swig.swig_vsd_find_signal_by_path(ctx, path)
+def signal(path):
+    return vsd_swig.swig_vss_find_signal_by_path(path)
 
 def path(sig):
     return vsd_swigt.vsd_desc_to_path_static(sig)
 
-def get(ctx, sig):
+def get(sig):
     dt = vsd_swig.swig_vsd_data_type(sig)
 
     if dt == data_type_e.vsd_int8:
-        return vsd_swig.swig_vsd_value_i8(ctx, sig)
+        return vsd_swig.swig_vsd_value_i8(sig)
 
     if dt == data_type_e.vsd_uint8:
-        return vsd_swig.swig_vsd_value_u8(ctx, sig)
+        return vsd_swig.swig_vsd_value_u8(sig)
 
     if dt == data_type_e.vsd_int16:
-        return vsd_swig.swig_vsd_value_i16(ctx, sig)
+        return vsd_swig.swig_vsd_value_i16(sig)
 
     if dt == data_type_e.vsd_uint16:
-        return vsd_swig.swig_vsd_value_u16(ctx, sig)
+        return vsd_swig.swig_vsd_value_u16(sig)
 
     if dt == data_type_e.vsd_int32:
-        return vsd_swig.swig_vsd_value_i32(ctx, sig)
+        return vsd_swig.swig_vsd_value_i32(sig)
 
     if dt == data_type_e.vsd_uint32:
-        return vsd_swig.swig_vsd_value_u32(ctx, sig)
+        return vsd_swig.swig_vsd_value_u32(sig)
 
     if dt == data_type_e.vsd_double:
-        return vsd_swig.swig_vsd_value_d(ctx, sig)
+        return vsd_swig.swig_vsd_value_d(sig)
 
     if dt == data_type_e.vsd_float:
-        return vsd_swig.swig_vsd_value_f(ctx, sig)
+        return vsd_swig.swig_vsd_value_f(sig)
 
     if dt == data_type_e.vsd_boolean:
-        return vsd_swig.swig_vsd_value_b(ctx, sig)
+        return vsd_swig.swig_vsd_value_b(csig)
 
     if dt == data_type_e.vsd_string:
-        return vsd_swig.swig_vsd_value_s(ctx, sig)
+        return vsd_swig.swig_vsd_value_s(sig)
 
     if dt == data_type_e.vsd_stream:
         return None
@@ -92,38 +88,38 @@ def get(ctx, sig):
     return None
 
 
-def set(ctx, sig, val):
+def set(sig, val):
     dt = vsd_swig.swig_vsd_data_type(sig)
 
     if dt == data_type_e.vsd_int8:
-        return vsd_swig.swig_vsd_set_i8(ctx, sig, val)
+        return vsd_swig.swig_vsd_set_i8(sig, val)
 
     if dt == data_type_e.vsd_uint8:
-        return vsd_swig.swig_vsd_set_u8(ctx, sig, val)
+        return vsd_swig.swig_vsd_set_u8(sig, val)
 
     if dt == data_type_e.vsd_int16:
-        return vsd_swig.swig_vsd_set_i16(ctx, sig, val)
+        return vsd_swig.swig_vsd_set_i16(sig, val)
 
     if dt == data_type_e.vsd_uint16:
-        return vsd_swig.swig_vsd_set_u16(ctx, sig, val)
+        return vsd_swig.swig_vsd_set_u16(sig, val)
 
     if dt == data_type_e.vsd_int32:
-        return vsd_swig.swig_vsd_set_i32(ctx, sig, val)
+        return vsd_swig.swig_vsd_set_i32(sig, val)
 
     if dt == data_type_e.vsd_uint32:
-        return vsd_swig.swig_vsd_set_u32(ctx, sig, val)
+        return vsd_swig.swig_vsd_set_u32(sig, val)
 
     if dt == data_type_e.vsd_double:
-        return vsd_swig.swig_vsd_set_d(ctx, sig, val)
+        return vsd_swig.swig_vsd_set_d(sig, val)
 
     if dt == data_type_e.vsd_float:
-        return vsd_swig.swig_vsd_set_f(ctx, sig, val)
+        return vsd_swig.swig_vsd_set_f(sig, val)
 
     if dt == data_type_e.vsd_boolean:
-        return vsd_swig.swig_vsd_set_b(ctx, sig, val)
+        return vsd_swig.swig_vsd_set_b(sig, val)
 
     if dt == data_type_e.vsd_string:
-        return vsd_swig.swig_vsd_set_s(ctx, sig, val)
+        return vsd_swig.swig_vsd_set_s(sig, val)
 
     if dt == data_type_e.vsd_stream:
         return None
@@ -138,15 +134,19 @@ def _intermediate_callback(*arg):
     # as native arguments.
 
     (signal_id, path, value) = arg
+    vsd_swig.log_debug("Intermediate callback called for path: " + str(path))
     _callback(signal_id, path, value)
 
-def set_callback(ctx, cb):
+def set_callback(cb):
     global _callback
     _callback = cb
-    return vsd_swig.swig_vsd_set_python_callback(ctx , _intermediate_callback)
+    return vsd_swig.swig_vsd_set_python_callback(_intermediate_callback)
 
 def process_events(timeout_msec):
-    return vsd_swig.dstc_process_events(timeout_msec);
+    return dstc.process_events(timeout_msec);
+
+def process_pending_events(timeout_msec):
+    return dstc.process_pending_events(timeout_msec);
 
 def activate():
     dstc.activate()

@@ -1,60 +1,67 @@
 %module vsd_swig
 %{
-
+#include <reliable_multicast.h>
+#include <rmc_log.h>
+#include <dstc.h>
 #include <vehicle_signal_distribution.h>
-#include <vsd_internal.h>
 #include <stdint.h>
 #include <errno.h>
 
+    extern void* vsd_get_user_data(vsd_context_t* ctx);
+    extern int vsd_set_user_data(vsd_context_t* ctx, void* user_data);
+
     static uint8_t do_callback(vsd_signal_node_t* node, void* v_ctx)
     {
+        RMC_LOG_DEBUG("PYTHON: Callback called");
         vsd_context_t* ctx = (vsd_context_t*) v_ctx;
         PyObject *arglist = 0;
         PyObject *result = 0;
-        PyObject *cb = (PyObject*) vsd_context_get_user_data(ctx);
-        vsd_signal_t* elem = node->data;
+        PyObject *cb = (PyObject*) vsd_get_user_data(ctx);
+        vss_signal_t* elem = node->data;
         char* sig_name = vsd_signal_to_path_static(elem);
 
-        if (vsd_elem_type(elem) == vsd_branch) {
-            printf("FATAL: Tried to print branch: %u:%s", vsd_id(elem), vsd_name(elem));
+        if (elem->element_type == VSS_BRANCH) {
+            printf("FATAL: Tried to print branch: %u:%s", elem->index, elem->name);
             exit(255);
         }
 
+        vsd_data_u res;
+        vsd_get_value(elem, &res);  
 
-        switch(vsd_data_type(elem)) {
-        case vsd_int8:
-            arglist = Py_BuildValue("Isb", elem->id, sig_name, vsd_value(elem).i8);
+        switch(elem->data_type) {
+        case VSS_INT8:
+            arglist = Py_BuildValue("Isb", elem->index, sig_name, res.i8);
             break;
-        case vsd_int16:
-            arglist = Py_BuildValue("Ish", elem->id, sig_name, vsd_value(elem).i16);
+        case VSS_INT16:
+            arglist = Py_BuildValue("Ish", elem->index, sig_name, res.i16);
             break;
-        case vsd_int32:
-            arglist = Py_BuildValue("Isi", elem->id, sig_name, vsd_value(elem).i32);
+        case VSS_INT32:
+            arglist = Py_BuildValue("Isi", elem->index, sig_name, res.i32);
             break;
-        case vsd_uint8:
-            arglist = Py_BuildValue("IsB", elem->id, sig_name, vsd_value(elem).i8);
+        case VSS_UINT8:
+            arglist = Py_BuildValue("IsB", elem->index, sig_name, res.i8);
             break;
-        case vsd_uint16:
-            arglist = Py_BuildValue("IsH", elem->id, sig_name, vsd_value(elem).i16);
+        case VSS_UINT16:
+            arglist = Py_BuildValue("IsH", elem->index, sig_name, res.i16);
             break;
-        case vsd_uint32:
-            arglist = Py_BuildValue("IsI", elem->id, sig_name, vsd_value(elem).i32);
+        case VSS_UINT32:
+            arglist = Py_BuildValue("IsI", elem->index, sig_name, res.i32);
             break;
-        case vsd_double:
-            arglist = Py_BuildValue("Isd", elem->id, sig_name, vsd_value(elem).d);
+        case VSS_DOUBLE:
+            arglist = Py_BuildValue("Isd", elem->index, sig_name, res.d);
             break;
-        case vsd_float:
-            arglist = Py_BuildValue("Isf", elem->id, sig_name, vsd_value(elem).f);
+        case VSS_FLOAT:
+            arglist = Py_BuildValue("Isf", elem->index, sig_name, res.f);
             break;
-        case vsd_boolean:
-            arglist = Py_BuildValue("Isb", elem->id, sig_name, vsd_value(elem).b);
+        case VSS_BOOLEAN:
+            arglist = Py_BuildValue("Isb", elem->index, sig_name, res.b);
             break;
-        case vsd_string:
-            arglist = Py_BuildValue("Isy#", elem->id, sig_name,
-                                    vsd_value(elem).s.data,
-                                    vsd_value(elem).s.len);
+        case VSS_STRING:
+            arglist = Py_BuildValue("Isy#", elem->index, sig_name,
+                                    res.s.data,
+                                    res.s.len);
             break;
-        case vsd_na:
+        case VSS_NA:
             break;
         default:
             break;
@@ -71,7 +78,8 @@
 
     void swig_vsd_process(vsd_context_t* ctx, vsd_signal_list_t* lst)
     {
-        vsd_signal_list_for_each(lst, do_callback, ctx);
+        RMC_LOG_DEBUG("PYHTON: processing vsd signals");
+        vsd_signal_list_for_each(lst, do_callback, 0);
         return;
     }
 %}
@@ -82,162 +90,208 @@
     typedef unsigned int vsd_id_t;
     typedef long int usec_timestamp_t;
 
-    extern int dstc_process_events(usec_timestamp_t);
-
-    extern vsd_data_type_e vsd_data_type(vsd_signal_t* sig);
-    extern int vsd_publish(vsd_signal_t* sig);
+    extern int vsd_publish(vss_signal_t* sig);
     extern int vsd_set_value_by_path_int8(vsd_context_t* context,
                                           char* path,
                                           signed char val);
-    extern vsd_data_u vsd_value(vsd_signal_t* sig);
-    extern int vsd_load_from_file(vsd_context_t* ctx, char *fname);
+    extern int vsd_get_value(vss_signal_t* sig,
+                         vsd_data_u *result);
     extern int vsd_subscribe(struct vsd_context* ctx,
-                             struct vsd_signal* sig,
+                             vss_signal_t* sig,
                              vsd_subscriber_cb_t callback);
 
-    extern char* vsd_signal_to_path_static(struct vsd_signal* desc);
+    extern const char* vsd_signal_to_path_static(vss_signal_t* desc);
 
-    vsd_context_t* swig_vsd_create_context(void)
+    void log_debug(char* msg) 
     {
-        struct vsd_context* ctx = 0;
-        vsd_context_create(&ctx);
-        return ctx;
+       RMC_LOG_DEBUG(msg);
     }
 
-    vsd_signal_t* swig_vsd_find_signal_by_path(vsd_context_t* ctx, char* path)
+    vss_signal_t* swig_vss_find_signal_by_path(char* path)
     {
-        vsd_signal_t* res = 0;
-        if (vsd_find_signal_by_path(ctx, 0, path, &res))
-            return 0;
+        vss_signal_t* sig = 0;
+        vss_get_signal_by_path(path, &sig);
 
-        return res;
+        return vss_get_signal_by_index(sig->index);
     }
 
-    vsd_signal_t* swig_vsd_find_signal_by_id(vsd_context_t* ctx, vsd_id_t id)
+    vss_signal_t* swig_vss_get_signal_by_index(int id)
     {
-        vsd_signal_t* res = 0;
-        if (vsd_find_signal_by_id(ctx, id, &res))
-            return 0;
-
-        return res;
+        return vss_get_signal_by_index(id);
     }
 
-    int  swig_vsd_subscribe(vsd_context_t* ctx, vsd_signal_t* sig)
+    int  swig_vsd_subscribe(vss_signal_t* sig)
     {
-        return vsd_subscribe(ctx, sig, swig_vsd_process);
+        return vsd_subscribe(0, sig, swig_vsd_process);
     }
 
-    int swig_vsd_data_type(vsd_signal_t* sig)
+    int swig_vsd_data_type(vss_signal_t* sig)
     {
-        return (int) vsd_data_type(sig);
+        return (int) sig->data_type;
     }
 
-    void swig_vsd_set_python_callback(vsd_context_t* ctx , PyObject* cb)
+    void swig_vsd_set_python_callback(PyObject* cb)
     {
-        PyObject *o_cb = (PyObject*) vsd_context_get_user_data(ctx);
+        PyObject *o_cb = (PyObject*) vsd_get_user_data(0);
 
         // Wipe old value, if set.
         if (o_cb)
             Py_DECREF(o_cb);
 
         Py_INCREF(cb);
-        vsd_context_set_user_data(ctx, (void*) cb);
+        vsd_set_user_data(0, (void*) cb);
+
+        RMC_LOG_DEBUG("vsd_set_python_callback()");
     }
 
-    signed char swig_vsd_value_i8(vsd_context_t* ctx, vsd_signal_t* sig) {
-        return vsd_value(sig).i8;
+    signed char swig_vsd_value_i8(vss_signal_t* sig) {
+
+        vsd_data_u res;
+        vsd_get_value(sig, &res);        
+
+        return res.i8;
     }
 
-    unsigned char swig_vsd_value_u8(vsd_context_t* ctx, vsd_signal_t* sig) {
-        return vsd_value(sig).u8;
+    unsigned char swig_vsd_value_u8(vss_signal_t* sig) {
+
+        vsd_data_u res;
+        vsd_get_value(sig, &res);  
+
+        return res.u8;
     }
 
-    signed short swig_vsd_value_i16(vsd_context_t* ctx, vsd_signal_t* sig) {
-        return vsd_value(sig).i16;
+    signed short swig_vsd_value_i16(vss_signal_t* sig) {
+
+        vsd_data_u res;
+        vsd_get_value(sig, &res);  
+
+        return res.i16;
     }
 
-    unsigned short swig_vsd_value_u16(vsd_context_t* ctx, vsd_signal_t* sig) {
-        return vsd_value(sig).u16;
+    unsigned short swig_vsd_value_u16(vss_signal_t* sig) {
+
+        vsd_data_u res;
+        vsd_get_value(sig, &res);  
+
+        return res.u16;
     }
 
-    signed int swig_vsd_value_i32(vsd_context_t* ctx, vsd_signal_t* sig) {
-        return vsd_value(sig).i32;
+    signed int swig_vsd_value_i32(vss_signal_t* sig) {
+
+        vsd_data_u res;
+        vsd_get_value(sig, &res);  
+
+        return res.i32;
     }
 
-    unsigned int swig_vsd_value_u32(vsd_context_t* ctx, vsd_signal_t* sig) {
-        return vsd_value(sig).u32;
+    unsigned int swig_vsd_value_u32(vss_signal_t* sig) {
+        
+        vsd_data_u res;
+        vsd_get_value(sig, &res);  
+
+        return res.u32;
     }
 
-    float swig_vsd_value_f(vsd_context_t* ctx, vsd_signal_t* sig) {
-        return vsd_value(sig).f;
+    float swig_vsd_value_f(vss_signal_t* sig) {
+        
+        vsd_data_u res;
+        vsd_get_value(sig, &res);  
+
+        return res.f;
     }
 
-    double swig_vsd_value_d(vsd_context_t* ctx, vsd_signal_t* sig) {
-        return vsd_value(sig).d;
+    double swig_vsd_value_d(vss_signal_t* sig) {
+                
+        vsd_data_u res;
+        vsd_get_value(sig, &res);  
+
+        return res.d;
     }
 
-    unsigned int swig_vsd_value_b(vsd_context_t* ctx, vsd_signal_t* sig) {
-        return vsd_value(sig).b;
+    unsigned int swig_vsd_value_b(vss_signal_t* sig) {
+                        
+        vsd_data_u res;
+        vsd_get_value(sig, &res);
+
+        return res.b;
     }
 
     //
     // SET VALUE
     //
-    signed char swig_vsd_set_i8(vsd_context_t* ctx, vsd_signal_t* sig, signed char val)
+    signed char swig_vsd_set_i8(vss_signal_t* sig, signed char val)
     {
-        return vsd_set_value_by_signal_int8(ctx, sig, val);
+        RMC_LOG_DEBUG("vsd_set_i8() value: %d on signal %d \n", val, sig->index);
+        return vsd_set_value_by_signal_int8(0, sig, val);
     }
 
-    unsigned char swig_vsd_set_u8(vsd_context_t* ctx, vsd_signal_t* sig, unsigned char val)
+    unsigned char swig_vsd_set_u8(vss_signal_t* sig, unsigned char val)
     {
-        return vsd_set_value_by_signal_uint8(ctx, sig, val);
+        RMC_LOG_DEBUG("vsd_set_u8() value: %c on signal %d \n", val, sig->index);
+        return vsd_set_value_by_signal_uint8(0, sig, val);
     }
 
-    signed short swig_vsd_set_i16(vsd_context_t* ctx, vsd_signal_t* sig, signed short val)
+    signed short swig_vsd_set_i16(vss_signal_t* sig, signed short val)
     {
-        return vsd_set_value_by_signal_int16(ctx, sig, val);
+        RMC_LOG_DEBUG("vsd_set_i16() value: %d on signal %d \n", val, sig->index);
+        return vsd_set_value_by_signal_int16(0, sig, val);
     }
 
-    unsigned short swig_vsd_set_u16(vsd_context_t* ctx, vsd_signal_t* sig, unsigned short val)
+    unsigned short swig_vsd_set_u16(vss_signal_t* sig, unsigned short val)
     {
-        return vsd_set_value_by_signal_uint16(ctx, sig, val);
+        RMC_LOG_DEBUG("vsd_set_u16() value: %d on signal %d \n", val, sig->index);
+        return vsd_set_value_by_signal_uint16(0, sig, val);
     }
 
-    signed int swig_vsd_set_i32(vsd_context_t* ctx, vsd_signal_t* sig, signed int val)
+    signed int swig_vsd_set_i32(vss_signal_t* sig, signed int val)
     {
-        return vsd_set_value_by_signal_int32(ctx, sig, val);
+        RMC_LOG_DEBUG("vsd_set_i32() value: %d on signal %d \n", val, sig->index);
+        return vsd_set_value_by_signal_int32(0, sig, val);
     }
 
-    unsigned int swig_vsd_set_u32(vsd_context_t* ctx, vsd_signal_t* sig, unsigned int val)
+    unsigned int swig_vsd_set_u32(vss_signal_t* sig, unsigned int val)
     {
-        return vsd_set_value_by_signal_uint32(ctx, sig, val);
+        RMC_LOG_DEBUG("vsd_set_u32() value: %d on signal %d \n", val, sig->index);
+        return vsd_set_value_by_signal_uint32(0, sig, val);
     }
 
-    float swig_vsd_set_f(vsd_context_t* ctx, vsd_signal_t* sig, float val)
+    float swig_vsd_set_f(vss_signal_t* sig, float val)
     {
-        return vsd_set_value_by_signal_float(ctx, sig, val);
+        RMC_LOG_DEBUG("vsd_set_f() value: %.2f on signal %d \n", val, sig->index);
+        return vsd_set_value_by_signal_float(0, sig, val);
     }
 
-    double swig_vsd_set_d(vsd_context_t* ctx, vsd_signal_t* sig, double val)
+    double swig_vsd_set_d(vss_signal_t* sig, double val)
     {
-        return vsd_set_value_by_signal_double(ctx, sig, val);
+        RMC_LOG_DEBUG("vsd_set_d() value: %.2f on signal %d \n", val, sig->index);
+        return vsd_set_value_by_signal_double(0, sig, val);
     }
 
-    unsigned int swig_vsd_set_b(vsd_context_t* ctx, vsd_signal_t* sig, signed char val)
+    unsigned int swig_vsd_set_b(vss_signal_t* sig, signed char val)
     {
-        return vsd_set_value_by_signal_boolean(ctx, sig, val);
+        RMC_LOG_DEBUG("vsd_set_b() value: %c on signal %d \n", val, sig->index);
+        return vsd_set_value_by_signal_boolean(0, sig, val);
     }
 
+    unsigned int swig_vsd_set_s(vss_signal_t* sig, char* data)
+    {
+        RMC_LOG_DEBUG("vsd_set_s() value: %s on signal %d \n", data, sig->index);
+        return vsd_set_value_by_signal_string(0, sig, data);
+    }
 
     %}
 
 %include "cstring.i"
 %cstring_output_allocate_size(char** str, int *len, free(*$1));
 %{
-    int swig_vsd_value_s(vsd_context_t* ctx, vsd_signal_t* sig, char** str, int *len) {
-        *str = (char*) malloc(vsd_value(sig).s.len);
-        *len = vsd_value(sig).s.len;
-        memcpy(*str, vsd_value(sig).s.data, *len);
+    int swig_vsd_value_s(vss_signal_t* sig, char** str, int *len) {
+                                
+        vsd_data_u res;
+        vsd_get_value(sig, &res);
+
+        *str = (char*) malloc(res.s.len);
+        *len = res.s.len;
+        memcpy(*str, res.s.data, *len);
         return 0;
 }
 %}
