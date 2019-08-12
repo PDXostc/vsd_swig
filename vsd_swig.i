@@ -18,7 +18,7 @@
         PyObject *result = 0;
         PyObject *cb = (PyObject*) vsd_get_user_data(ctx);
         vss_signal_t* elem = node->data;
-        char* sig_name = vsd_signal_to_path_static(elem);
+        const char* sig_name = vsd_signal_to_path_static(elem);
 
         if (elem->element_type == VSS_BRANCH) {
             printf("FATAL: Tried to print branch: %u:%s", elem->index, elem->name);
@@ -26,7 +26,7 @@
         }
 
         vsd_data_u res;
-        vsd_get_value(elem, &res);  
+        vsd_get_value(elem, &res);
 
         switch(elem->data_type) {
         case VSS_INT8:
@@ -102,7 +102,7 @@
 
     extern const char* vsd_signal_to_path_static(vss_signal_t* desc);
 
-    void log_debug(char* msg) 
+    void log_debug(char* msg)
     {
        RMC_LOG_DEBUG(msg);
     }
@@ -147,7 +147,7 @@
     signed char swig_vsd_value_i8(vss_signal_t* sig) {
 
         vsd_data_u res;
-        vsd_get_value(sig, &res);        
+        vsd_get_value(sig, &res);
 
         return res.i8;
     }
@@ -155,7 +155,7 @@
     unsigned char swig_vsd_value_u8(vss_signal_t* sig) {
 
         vsd_data_u res;
-        vsd_get_value(sig, &res);  
+        vsd_get_value(sig, &res);
 
         return res.u8;
     }
@@ -163,7 +163,7 @@
     signed short swig_vsd_value_i16(vss_signal_t* sig) {
 
         vsd_data_u res;
-        vsd_get_value(sig, &res);  
+        vsd_get_value(sig, &res);
 
         return res.i16;
     }
@@ -171,7 +171,7 @@
     unsigned short swig_vsd_value_u16(vss_signal_t* sig) {
 
         vsd_data_u res;
-        vsd_get_value(sig, &res);  
+        vsd_get_value(sig, &res);
 
         return res.u16;
     }
@@ -179,37 +179,37 @@
     signed int swig_vsd_value_i32(vss_signal_t* sig) {
 
         vsd_data_u res;
-        vsd_get_value(sig, &res);  
+        vsd_get_value(sig, &res);
 
         return res.i32;
     }
 
     unsigned int swig_vsd_value_u32(vss_signal_t* sig) {
-        
+
         vsd_data_u res;
-        vsd_get_value(sig, &res);  
+        vsd_get_value(sig, &res);
 
         return res.u32;
     }
 
     float swig_vsd_value_f(vss_signal_t* sig) {
-        
+
         vsd_data_u res;
-        vsd_get_value(sig, &res);  
+        vsd_get_value(sig, &res);
 
         return res.f;
     }
 
     double swig_vsd_value_d(vss_signal_t* sig) {
-                
+
         vsd_data_u res;
-        vsd_get_value(sig, &res);  
+        vsd_get_value(sig, &res);
 
         return res.d;
     }
 
     unsigned int swig_vsd_value_b(vss_signal_t* sig) {
-                        
+
         vsd_data_u res;
         vsd_get_value(sig, &res);
 
@@ -285,7 +285,7 @@
 %cstring_output_allocate_size(char** str, int *len, free(*$1));
 %{
     int swig_vsd_value_s(vss_signal_t* sig, char** str, int *len) {
-                                
+
         vsd_data_u res;
         vsd_get_value(sig, &res);
 
