@@ -1,15 +1,18 @@
 #
-# Makefile to generate python interface code for DSTC
+# Makefile to generate python interface code for VSD
 #
-
 CFLAGS += -ggdb
-VSD_DIR ?= /usr/local/include
+INC_DIRS ?= -I/usr/local/include
 
-vsd_swig_wrap.o: vsd_swig_wrap.c
-	python3 setup.py build_ext --inplace -I${VSD_DIR}
+OBJ = vsd_swig_wrap.o
+SRC = vsd_swig_wrap.c
+SWIG = vsd_swig.i
 
-vsd_swig_wrap.c: vsd_swig.i
-	swig -I${VSD_DIR} -python -includeall vsd_swig.i
+$(OBJ): $(SRC)
+	python3 setup.py build_ext --inplace $(INC_DIRS)
+
+$(SRC): $(SWIG)
+	swig $(INC_DIRS) -python -includeall $(SWIG)
 
 clean:
 	rm -rf _vsd*.so build vsd_swig.py vsd_swig_wrap.* __pycache__ \
