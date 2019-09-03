@@ -16,6 +16,6 @@ setup (name        = 'jlr-vsd',
        description = """SWIG wrapper for VSD.""",
        py_modules  = [ 'vsd', 'vsd_swig' ],
        ext_modules = [
-           Extension('_vsd_swig', sources=['vsd_swig_wrap.c',],libraries=['vsd', 'dstc', 'rmc', 'vss'])
+           Extension('_vsd_swig', sources=['vsd_swig_wrap.c', 'vss_spec.c' ],libraries=['vsd', 'dstc', 'rmc', 'vss'])
        ],
        )
