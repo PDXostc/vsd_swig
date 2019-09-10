@@ -12,7 +12,7 @@ if 'VERSION' in os.environ:
 else:
     ver = '0.0.0.dev0'
 
-setup (name        = 'jlr-vsd',
+setup (name        = 'python-vsd',
        version     = ver,
        author      = "SWIG Docs",
        description = """SWIG wrapper for VSD.""",
