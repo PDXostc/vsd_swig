@@ -10,9 +10,10 @@
 # Simple library to integrate Python with DSTC
 #
 import dstc
-import vsd_swig
+import ctypes
 
 _callback = None
+vsd_swig = None
 # Copied in from vehicle_signal_distribution.h
 # Could not get exported enums to work.
 class data_type_e:
@@ -28,6 +29,14 @@ class data_type_e:
     vsd_string = 9
     vsd_stream = 10
     vsd_na = 11
+
+
+def load_vss_shared_object(so_file):
+    global vsd_swig
+    res = ctypes.CDLL("librmc.so", mode=ctypes.RTLD_GLOBAL)
+    res = ctypes.CDLL("libdstc.so", mode=ctypes.RTLD_GLOBAL)
+    res = ctypes.CDLL(so_file, mode=ctypes.RTLD_GLOBAL)
+    vsd_swig = __import__("vsd_swig")
 
 def publish(sig):
     vsd_swig.log_debug("VSD Publish")

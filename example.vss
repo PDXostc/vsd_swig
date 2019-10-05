@@ -1,0 +1,101 @@
+#  (C) 2019 Jaguar Land Rover
+#  All rights reserved. Do not distribute.
+
+
+# NOTE:
+#
+# 'type:' has to be defined for all elements.
+# Choose between branch, element, actuator, or sensor.  If you do not
+# define type, your signal may not get transmitted by vsd_publish()
+# due to a bug in vspec.py in
+# github.com/GENIVI/vehicle_signal_specification
+
+#
+# Modem definition
+#
+---
+- Modem:
+  type: branch
+  description: The modem main branch
+
+- Modem.Status:
+  datatype: string
+  type: element
+  description: The status of the modem
+  enum: [ "off", "on", "home_network", "roaming" ]
+
+- Modem.SignalStrength:
+  type: element
+  datatype: int32
+  description: Signal strength, in dB. 0 = off.
+
+- Modem.DataLink:
+  type: branch
+  aggregate: true
+  description: A collection of data that describes the data link
+
+- Modem.DataLink.Status:
+  datatype: string
+  type: element
+  description: >-
+    The status of the datalink itself.
+    Transitions from disconnected,to connecting, to connected,
+    backl to disconnected.
+
+  enum: [ "disconnected", "connecting", "connected" ]
+
+- Modem.DataLink.TxSpeed:
+  datatype: uint32
+  type: element
+  description: Approximate upload speed in bytes/sec. 0 == disconnected
+
+- Modem.DataLink.RxSpeed:
+  datatype: uint32
+  type: element
+  description: Approximate download speed in bytes/sec. 0 == disconnected
+
+- Modem.DataLink.ConnectionType:
+  datatype: string
+  type: element
+  description: Connection types. NONE = disconnected
+  enum: [ "none", "2g", "gprs", "edge", "3g", "hspa", "hspa+", "lte", "lte-a"]
+
+- Modem.DataLink.TxKBytes:
+  datatype: uint32
+  type: element
+  description: Number of kilobytes transmitted since power on or reset by reset_traffic_stats() call.
+
+- Modem.DataLink.RxKBytes:
+  datatype: uint32
+  type: element
+  description: Number of kilobytes recived since power on or reset by reset_traffic_stats() call.
+
+- Modem.DataLink.IP:
+  type: branch
+  description: Information about IP addresses, default gateway,e tc.
+
+
+- Modem.DataLink.IP.Version:
+  datatype: uint8
+  type: element
+  description: IP Version used. Either 4 or 6. 0 if disconnected
+
+- Modem.DataLink.IP.Address:
+  datatype: string
+  type: element
+  description: >-
+    Assigned IP address in the format AAA.BBB.CCC.DDD or
+    2001:0db8:85a3:0000:0000:8a2e:0370:7334.
+
+- Modem.DataLink.IP.DefaultGateway:
+  datatype: string
+  type: element
+  description: >-
+    Default gateway provided by carrier network AAA.BBB.CCC.DDD or
+    2001:0db8:85a3:0000:0000:8a2e:0370:7334.
+
+- Modem.DataLink.IP.Netmask:
+  datatype: uint32
+  type: element
+  description: >-
+    Number of bits in netmask (for IPv4) or prefix (IPv6)

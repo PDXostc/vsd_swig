@@ -6,6 +6,7 @@
 #include <vehicle_signal_distribution.h>
 #include <stdint.h>
 #include <errno.h>
+#include <dlfcn.h>
 
     extern void* vsd_get_user_data(vsd_context_t* ctx);
     extern int vsd_set_user_data(vsd_context_t* ctx, void* user_data);
@@ -112,12 +113,7 @@
         vss_signal_t* sig = 0;
         vss_get_signal_by_path(path, &sig);
 
-        return vss_get_signal_by_index(sig->index);
-    }
-
-    vss_signal_t* swig_vss_get_signal_by_index(int id)
-    {
-        return vss_get_signal_by_index(id);
+        return sig;
     }
 
     int  swig_vsd_subscribe(vss_signal_t* sig)
@@ -221,61 +217,61 @@
     //
     signed char swig_vsd_set_i8(vss_signal_t* sig, signed char val)
     {
-        RMC_LOG_DEBUG("vsd_set_i8() value: %d on signal %d \n", val, sig->index);
+        RMC_LOG_DEBUG("vsd_set_i8() value: %d on signal %s \n", val, sig->uuid);
         return vsd_set_value_by_signal_int8(0, sig, val);
     }
 
     unsigned char swig_vsd_set_u8(vss_signal_t* sig, unsigned char val)
     {
-        RMC_LOG_DEBUG("vsd_set_u8() value: %c on signal %d \n", val, sig->index);
+        RMC_LOG_DEBUG("vsd_set_u8() value: %c on signal %s \n", val, sig->uuid);
         return vsd_set_value_by_signal_uint8(0, sig, val);
     }
 
     signed short swig_vsd_set_i16(vss_signal_t* sig, signed short val)
     {
-        RMC_LOG_DEBUG("vsd_set_i16() value: %d on signal %d \n", val, sig->index);
+        RMC_LOG_DEBUG("vsd_set_i16() value: %d on signal %s \n", val, sig->uuid);
         return vsd_set_value_by_signal_int16(0, sig, val);
     }
 
     unsigned short swig_vsd_set_u16(vss_signal_t* sig, unsigned short val)
     {
-        RMC_LOG_DEBUG("vsd_set_u16() value: %d on signal %d \n", val, sig->index);
+        RMC_LOG_DEBUG("vsd_set_u16() value: %d on signal %s \n", val, sig->uuid);
         return vsd_set_value_by_signal_uint16(0, sig, val);
     }
 
     signed int swig_vsd_set_i32(vss_signal_t* sig, signed int val)
     {
-        RMC_LOG_DEBUG("vsd_set_i32() value: %d on signal %d \n", val, sig->index);
+        RMC_LOG_DEBUG("vsd_set_i32() value: %d on signal %s \n", val, sig->uuid);
         return vsd_set_value_by_signal_int32(0, sig, val);
     }
 
     unsigned int swig_vsd_set_u32(vss_signal_t* sig, unsigned int val)
     {
-        RMC_LOG_DEBUG("vsd_set_u32() value: %d on signal %d \n", val, sig->index);
+        RMC_LOG_DEBUG("vsd_set_u32() value: %d on signal %s \n", val, sig->uuid);
         return vsd_set_value_by_signal_uint32(0, sig, val);
     }
 
     float swig_vsd_set_f(vss_signal_t* sig, float val)
     {
-        RMC_LOG_DEBUG("vsd_set_f() value: %.2f on signal %d \n", val, sig->index);
+        RMC_LOG_DEBUG("vsd_set_f() value: %.2f on signal %s \n", val, sig->uuid);
         return vsd_set_value_by_signal_float(0, sig, val);
     }
 
     double swig_vsd_set_d(vss_signal_t* sig, double val)
     {
-        RMC_LOG_DEBUG("vsd_set_d() value: %.2f on signal %d \n", val, sig->index);
+        RMC_LOG_DEBUG("vsd_set_d() value: %.2f on signal %s \n", val, sig->uuid);
         return vsd_set_value_by_signal_double(0, sig, val);
     }
 
     unsigned int swig_vsd_set_b(vss_signal_t* sig, signed char val)
     {
-        RMC_LOG_DEBUG("vsd_set_b() value: %c on signal %d \n", val, sig->index);
+        RMC_LOG_DEBUG("vsd_set_b() value: %c on signal %s \n", val, sig->uuid);
         return vsd_set_value_by_signal_boolean(0, sig, val);
     }
 
     unsigned int swig_vsd_set_s(vss_signal_t* sig, char* data)
     {
-        RMC_LOG_DEBUG("vsd_set_s() value: %s on signal %d \n", data, sig->index);
+        RMC_LOG_DEBUG("vsd_set_s() value: %s on signal %s \n", data, sig->uuid);
         return vsd_set_value_by_signal_string(0, sig, data);
     }
 
