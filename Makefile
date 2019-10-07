@@ -4,6 +4,7 @@
 
 CFLAGS += -ggdb
 VSD_DIR ?= /usr/local/include
+
 VSPEC2C ?= /usr/local/bin/vspec2c.py
 
 all: vsd_swig_wrap.o
