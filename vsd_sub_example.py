@@ -10,13 +10,18 @@ exit_flag = False
 
 def process_signal(signal, path, value):
     print("Sub {}:{} - {}".format(signal, path, value))
-    global exit_flag 
+    global exit_flag
     exit_flag = True
 
 def main():
+    vsd.load_vss_shared_object("./example.so")
     dstc.activate()
     vsd.set_callback(process_signal)
-    sig = vsd.signal("Vehicle.Drivetrain.InternalCombustionEngine");
+    sig = vsd.signal("Modem");
+    if not sig:
+        print("Could not resolve signal Modem")
+        sys.exit(255)
+
     vsd.subscribe(sig)
     global exit_flag
 

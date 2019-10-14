@@ -6,14 +6,26 @@ import time
 from dstc import current_milli_time
 
 def main():
+    #./ in the path name forces the current directory to be searched
+    # instead of LD_LIBRARY_PATH (/lib, /usr/libm, etc)
+    vsd.load_vss_shared_object("./example.so")
 
-    sig = vsd.signal("Vehicle.Drivetrain.InternalCombustionEngine.Engine.Power")
-    vsd.set(sig, 230)
+    sig = vsd.signal("Modem.DataLink.Status")
+    if not sig:
+        print("Could not resolve signal Modem.DataLink.Status")
+        sys.exit(255)
 
-    sig = vsd.signal("Vehicle.Drivetrain.InternalCombustionEngine.FuelType")
-    vsd.set(sig, "gasoline")
+    vsd.set(sig, "connecting")
 
-    pub = vsd.signal("Vehicle.Drivetrain.InternalCombustionEngine")
+    sig = vsd.signal("Modem.SignalStrength")
+    if not sig:
+        print("Could not resolve signal Modem.SignalStrength")
+        sys.exit(255)
+
+
+    vsd.set(sig, 12)
+
+    pub = vsd.signal("Modem")
 
     dstc.activate()
 
