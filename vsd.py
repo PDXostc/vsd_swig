@@ -30,7 +30,6 @@ class data_type_e:
     vsd_stream = 10
     vsd_na = 11
 
-
 def load_vss_shared_object(so_file):
     global vsd_swig
     res = ctypes.CDLL("librmc.so", mode=ctypes.RTLD_GLOBAL)
@@ -53,7 +52,7 @@ def signal(path):
     return vsd_swig.swig_vss_find_signal_by_path(path)
 
 def path(sig):
-    return vsd_swigt.vsd_desc_to_path_static(sig)
+    return vsd_swig.vsd_desc_to_path_static(sig)
 
 def get(sig):
     dt = vsd_swig.swig_vsd_data_type(sig)
