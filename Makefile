@@ -7,7 +7,7 @@ VSD_DIR ?= /usr/local/include
 
 VSPEC2C ?= /usr/local/bin/vspec2c.py
 
-all: vsd_swig_wrap.o
+all: vsd_swig_wrap.o example.so
 example: example.so
 
 vsd_swig_wrap.o: vsd_swig_wrap.c
