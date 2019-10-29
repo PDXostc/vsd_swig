@@ -8,8 +8,8 @@ import sys
 
 exit_flag = False
 
-def process_signal(signal, path, value):
-    print("Sub {}:{} - {}".format(signal, path, value))
+def process_signal(path, sig_type, value):
+    print("Sub {}:{} - {}".format(path, sig_type, value))
     global exit_flag
     exit_flag = True
 
