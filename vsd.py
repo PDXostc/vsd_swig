@@ -52,7 +52,10 @@ def signal(path):
     return vsd_swig.swig_vss_find_signal_by_path(path)
 
 def path(sig):
-    return vsd_swig.vsd_desc_to_path_static(sig)
+    return vsd_swig.swig_vss_get_signal_path(sig)
+
+def type(sig):
+    return vsd_swig.swig_vsd_data_type(sig)
 
 def get(sig):
     dt = vsd_swig.swig_vsd_data_type(sig)
@@ -141,9 +144,9 @@ def _intermediate_callback(*arg):
     # Invoke the real callback with unpacked tuples provided
     # as native arguments.
 
-    (signal_id, path, value) = arg
+    (path, sig_type, value) = arg
     vsd_swig.log_debug("Intermediate callback called for path: " + str(path))
-    _callback(signal_id, path, value)
+    _callback(path, sig_type, value)
 
 def set_callback(cb):
     global _callback

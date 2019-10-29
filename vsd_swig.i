@@ -19,7 +19,8 @@
         PyObject *result = 0;
         PyObject *cb = (PyObject*) vsd_get_user_data(ctx);
         vss_signal_t* elem = node->data;
-        const char* sig_name = vsd_signal_to_path_static(elem);
+        char sig_name[1024];
+        vss_get_signal_path(elem, sig_name, sizeof(sig_name));
 
         if (elem->element_type == VSS_BRANCH) {
             printf("FATAL: Tried to print branch: %u:%s", elem->index, elem->name);
@@ -31,34 +32,34 @@
 
         switch(elem->data_type) {
         case VSS_INT8:
-            arglist = Py_BuildValue("Isb", elem->index, sig_name, res.i8);
+            arglist = Py_BuildValue("sIb", sig_name, elem->data_type, res.i8);
             break;
         case VSS_INT16:
-            arglist = Py_BuildValue("Ish", elem->index, sig_name, res.i16);
+            arglist = Py_BuildValue("sIh", sig_name, elem->data_type, res.i16);
             break;
         case VSS_INT32:
-            arglist = Py_BuildValue("Isi", elem->index, sig_name, res.i32);
+            arglist = Py_BuildValue("sIi", sig_name, elem->data_type, res.i32);
             break;
         case VSS_UINT8:
-            arglist = Py_BuildValue("IsB", elem->index, sig_name, res.i8);
+            arglist = Py_BuildValue("sIB", sig_name, elem->data_type, res.i8);
             break;
         case VSS_UINT16:
-            arglist = Py_BuildValue("IsH", elem->index, sig_name, res.i16);
+            arglist = Py_BuildValue("sIH", sig_name, elem->data_type, res.i16);
             break;
         case VSS_UINT32:
-            arglist = Py_BuildValue("IsI", elem->index, sig_name, res.i32);
+            arglist = Py_BuildValue("sII", sig_name, elem->data_type, res.i32);
             break;
         case VSS_DOUBLE:
-            arglist = Py_BuildValue("Isd", elem->index, sig_name, res.d);
+            arglist = Py_BuildValue("sId", sig_name, elem->data_type, res.d);
             break;
         case VSS_FLOAT:
-            arglist = Py_BuildValue("Isf", elem->index, sig_name, res.f);
+            arglist = Py_BuildValue("sIf", sig_name, elem->data_type, res.f);
             break;
         case VSS_BOOLEAN:
-            arglist = Py_BuildValue("Isb", elem->index, sig_name, res.b);
+            arglist = Py_BuildValue("sIb", sig_name, elem->data_type, res.b);
             break;
         case VSS_STRING:
-            arglist = Py_BuildValue("Isy#", elem->index, sig_name,
+            arglist = Py_BuildValue("sIy#", sig_name, elem->data_type,
                                     res.s.data,
                                     res.s.len);
             break;
@@ -101,7 +102,6 @@
                              vss_signal_t* sig,
                              vsd_subscriber_cb_t callback);
 
-    extern const char* vsd_signal_to_path_static(vss_signal_t* desc);
 
     void log_debug(char* msg)
     {
@@ -114,6 +114,15 @@
         vss_get_signal_by_path(path, &sig);
 
         return sig;
+    }
+
+    char* swig_vss_get_signal_path(vss_signal_t* sig)
+    {
+        static char path[1024];
+
+        vss_get_signal_path(sig, path, sizeof(path));
+
+        return path;
     }
 
     int  swig_vsd_subscribe(vss_signal_t* sig)
